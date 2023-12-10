@@ -36,9 +36,96 @@ import random
 import os
 from art import logo
 
+cards = [11, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10]
 def clear():  # Cross-platform clear screen
     os.system('cls' if os.name == 'nt' else 'clear')
 
+def deal_card(deck: list[int]):
+    deck.append(random.choice(cards))
+
+def calculate_score(deck: list[int]):
+    possible_scores=[]
+    deck_sum = sum(deck)
+    possible_scores.append(deck_sum)
+    num_aces = deck.count(11)
+    for _ in range(num_aces):
+        deck_sum -= 10
+        possible_scores.append(deck_sum)
+    if len(possible_scores) == 1:
+        return possible_scores[0]
+    else:
+        for score in possible_scores:
+            if score <= 21:
+                return score
+        return possible_scores[-1]
+
+def printResult(message: str, user_deck: list[int], dealer_deck: list[int]):
+    print(f"{message}, your score: {calculate_score(user_deck)}, dealer score: {calculate_score(dealer_deck)}, your cards: {user_deck}, dealer cards: {dealer_deck}")
+
+def compare_score(user_deck: list[int], dealer_deck: list[int]):
+    # return 1 if user wins, 0 if draw, -1 if dealer wins
+    user_score = calculate_score(user_deck)
+    dealer_score = calculate_score(dealer_deck)
+    if dealer_score > 21:
+        return True, 1, "dealer bust!"
+    elif dealer_score == 21:
+        return True, -1, "dealer black jack!"
+    elif user_score > 21:
+        return True, -1, "You bust!"
+    elif user_score == 21:
+        return True, 1, "you black jack!"
+    elif user_score - dealer_score > 0:
+        return False, 1, "you won!"
+    elif user_score - dealer_score < 0:
+        return False, -1, "dealer won!"
+    else:
+        return False, 0, "draw!"
+
+
+dealer_wins = 0
+user_wins = 0
+
+dealer_deck=[]
+user_deck=[]
+
+while True:
+    clear()
+    print(logo)
+    dealer_deck = []
+    user_deck = []
+    print(f"You: {user_wins} win {dealer_wins} loss")
+    print(f"Dealer: {dealer_wins} win {user_wins} loss")
+    should_start_game = int(input("do you want another game? type 0 if yes, 1 if no\n"))
+    if should_start_game != 0:
+        break
+    while calculate_score(dealer_deck) < 17:
+        deal_card(dealer_deck)
+    deal_card(user_deck)
+    deal_card(user_deck)
+    while True:
+        is_game_ending, score, message = compare_score(user_deck, dealer_deck)
+        if is_game_ending:
+            if score == 1:
+                user_wins += 1
+            else:
+                dealer_wins +=1
+            printResult(message, user_deck, dealer_deck)
+            input("Type enter to continue...\n")
+            break
+        print(f"Your cards: {user_deck}")
+        should_draw_card = int(input("do you want draw another card? type 0 if yes, 1 if no\n"))
+        if should_draw_card == 0:
+            deal_card(user_deck)
+        else:
+            if score == 1:
+                user_wins += 1
+            elif score == -1:
+                dealer_wins +=1
+            printResult(message, user_deck, dealer_deck)
+            input("Type enter to continue...\n")
+            break
+
+    
 #Hint 6: Create a function called calculate_score() that takes a List of cards as input 
 #and returns the score. 
 #Look up the sum() function to help you do this.
